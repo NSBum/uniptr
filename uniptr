@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 
 
-VERSION=1.01
+VERSION=1.2.0
 
 version() {
    echo "uniptr: version ${VERSION}"
@@ -25,18 +25,6 @@ usage() {
    echo "   uniptr \"Это моя собака.\""
    exit 1
 }
-
-# prints the UTF-8 code for a character
-utfer() {
-   echo -n "$1" | xxd \
-      | perl -pe 's/.+\:\s+([A-Fa-f0-9\s]+[^\s])\s{3,}.+$/$1/gm;' \
-      | sed 's/ //g' \
-      | fold -w2 \
-      | tr '\n' ' ' \
-      | sed 's/ 0a//g' \
-      | sed 's/^ +(.+)//g'
-}
-export -f utfer
 
 if ! which ucpt > /dev/null; then
    echo "ERR: ucpt required"
@@ -89,8 +77,9 @@ while IFS= read -rn1 char; do
       unipoint="U+20"
       utf="20"
    else
-      unipoint=$(ucpt "$char")
-      utf=$(echo -n "$char" | xargs -I {} bash -c 'utfer "$@"' _ {})
+      char_data=$(ucpt "$char")
+      unipoint=$(echo "$char_data" | awk -F '|' '{print $1}')
+      utf=$(echo "$char_data" | awk -F '|' '{print $2}')
    fi
    printf "%-7s\t| %-10s\t| %-10s\n" "$char" "$unipoint" "$utf"
 done <<< "$text"
