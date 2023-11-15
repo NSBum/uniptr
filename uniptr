@@ -1,0 +1,118 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+
+
+VERSION=1.01
+
+version() {
+   echo "uniptr: version ${VERSION}"
+   exit -1
+}
+
+usage() {
+   echo "uniptr"
+   echo "------"
+   echo "Unicode and UTF-8 printer"
+   echo "Print Unicode code points and UTF-8 sequences in text"
+   echo ""
+   echo "Dependencies:"
+   echo "   ucpt - see https://github.com/NSBum/ucpt"
+   echo ""
+   echo "Usage examples:"
+   echo "   echo \"私の犬にはノミがいます。\" | uniptr"
+   echo "   uniptr \"Это моя собака.\""
+   exit -1
+}
+
+# prints the hex code for Unicode
+# code point for a character
+upt() {   
+   if [ "$1" = " " ]; then
+      echo "U+20"
+   else
+      if [ -n "$lobash" ] && [ "$lobash" -eq 1 ]; then
+         echo "alt upt"
+         printf "%x" "$1"
+      else
+         ucpt "$1"
+         # this works sort-of
+#        echo -n "$1" | iconv -f UTF-8 -t UTF-32 | hexdump | head -n1 | awk '{print $4 $5}' \
+#        | perl -pe 's/(\w\w)(\w\w)(\w\w)(\w\w)/$2$1$4$3/gm;' \
+#        | tr '[:lower:]' '[:upper:]' \
+#        | sed 's/^0*//'
+         
+         # this works sort 0f
+#        echo -n "$1" | iconv -f UTF-8 -t UTF-32BE | od -An -t x1 | xargs
+      fi
+   fi
+}
+export -f upt
+
+# prints the UTF-8 code for a character
+utfer() {
+   echo -n "$1" | xxd \
+      | perl -pe 's/.+\:\s+([A-Fa-f0-9\s]+[^\s])\s{3,}.+$/$1/gm;' \
+      | sed 's/ //g' \
+      | fold -w2 \
+      | tr '\n' ' ' \
+      | sed 's/ 0a//g' \
+      | sed 's/^ +(.+)//g'
+}
+export -f utfer
+
+# prints the Unicode point in the canonical
+# format, e.g. U+7328
+#ucpt() {
+#  # get unicode → remove spaces → remove leading zeros → make upper case → print the "U+"
+#  echo "$1" | xargs -I {} bash -c 'upt "$@"' _ {} \
+#  | sed 's/ //g' \
+#  | perl -pe 's/0+([0-9A-Fa-f]+)/$1/g' \
+#  | tr '[:lower:]' '[:upper:]' \
+#  | xargs -I {} printf "U+%s\n" {}
+#}
+
+ucpt "a"
+if ! which ucpt > /dev/null; then
+   echo "ERR: ucpt required"
+   usage
+fi
+
+while getopts 'hv' OPT; do
+   case $OPT in
+      h) usage;;
+      v) version;;
+      ?) usage;;
+   esac
+done
+
+shift $(( OPTIND - 1 )) 
+if [  -z "$@" ]; then
+   # no argument provided to look for stdin
+   if [ -t 0 ]; then
+      echo "ERR: nothing to check"
+      usage
+   else
+      read text
+   fi
+else
+   # there is a parameter so use it
+   text=$@
+fi
+
+printf "%-7s\t| %-10s\t| %-10s\n" "char" "Unicode" "UTF-8"
+printf "%s\n" "--------|---------------|----------"
+while IFS= read -rn1 char; do
+   # stop if we're done
+   [ -z "$char" ] && break
+   # shortcut to deal with space character
+   if [ "$char" = " " ]; then
+      unipoint="U+20"
+      utf="20"
+   else
+      unipoint=$(ucpt "$char")
+      utf=$(echo -n "$char" | xargs -I {} bash -c 'utfer "$@"' _ {})
+   fi
+   printf "%-7s\t| %-10s\t| %-10s\n" "$char" "$unipoint" "$utf"
+done <<< "$text"
