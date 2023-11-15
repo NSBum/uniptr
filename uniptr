@@ -62,17 +62,6 @@ utfer() {
 }
 export -f utfer
 
-# prints the Unicode point in the canonical
-# format, e.g. U+7328
-#ucpt() {
-#  # get unicode → remove spaces → remove leading zeros → make upper case → print the "U+"
-#  echo "$1" | xargs -I {} bash -c 'upt "$@"' _ {} \
-#  | sed 's/ //g' \
-#  | perl -pe 's/0+([0-9A-Fa-f]+)/$1/g' \
-#  | tr '[:lower:]' '[:upper:]' \
-#  | xargs -I {} printf "U+%s\n" {}
-#}
-
 if ! which ucpt > /dev/null; then
    echo "ERR: ucpt required"
    usage
