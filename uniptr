@@ -73,7 +73,6 @@ export -f utfer
 #  | xargs -I {} printf "U+%s\n" {}
 #}
 
-ucpt "a"
 if ! which ucpt > /dev/null; then
    echo "ERR: ucpt required"
    usage
