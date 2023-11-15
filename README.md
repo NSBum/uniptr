@@ -7,5 +7,5 @@ Dependencies:
    ucpt - see https://github.com/NSBum/ucpt
 
 Usage examples:
-   echo "私の犬にはノミがいます。" | uniptr
-   uniptr "Это моя собака."
+- `echo "私の犬にはノミがいます。" | uniptr`
+- `uniptr "Это моя собака."`
