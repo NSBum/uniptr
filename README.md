@@ -1,5 +1,5 @@
 # uniptr
-------
+
 Unicode and UTF-8 printer
 Print Unicode code points and UTF-8 sequences in text
 
