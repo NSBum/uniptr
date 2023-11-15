@@ -12,7 +12,7 @@ Usage examples:
 - `uniptr "Это моя собака."`
 
 ```shell
-echo "кошка" | ./uniptr                                                                    1 ↵
+echo "кошка" | ./uniptr
 char   	| Unicode   	| UTF-8
 --------|---------------|----------
 к     	| U+043A    	| d0 ba
