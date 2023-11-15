@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/opt/homebrew/bin/bash
 
 set -o errexit
 set -o nounset
@@ -32,6 +32,7 @@ upt() {
    if [ "$1" = " " ]; then
       echo "U+20"
    else
+      echo "$1"
       ucpt "$1"
    fi
 }
@@ -54,6 +55,20 @@ if ! which ucpt > /dev/null; then
    usage
 fi
 
+# Function to compare versions
+version_ge() {
+   test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1";
+}
+
+# Minimum required version
+MIN_VERSION="4.2"
+
+# Check if the current version of Bash is less than the required version
+if version_ge "$MIN_VERSION" "$BASH_VERSION"; then
+   echo "This script requires Bash version $MIN_VERSION or greater."
+   exit 1
+fi
+
 while getopts 'hv' OPT; do
    case $OPT in
       h) usage;;
@@ -63,8 +78,8 @@ while getopts 'hv' OPT; do
 done
 
 shift $(( OPTIND - 1 )) 
-if [  -z "$@" ]; then
-   # no argument provided to look for stdin
+if [ $# -eq 0 ]; then
+   # no argument provided, look for stdin
    if [ -t 0 ]; then
       echo "ERR: nothing to check"
       usage
@@ -72,8 +87,8 @@ if [  -z "$@" ]; then
       read text
    fi
 else
-   # there is a parameter so use it
-   text=$@
+   # there is a parameter, so use it
+   text="$*"
 fi
 
 printf "%-7s\t| %-10s\t| %-10s\n" "char" "Unicode" "UTF-8"
@@ -86,6 +101,8 @@ while IFS= read -rn1 char; do
       unipoint="U+20"
       utf="20"
    else
+#     echo "$char"
+#     unipoint="U+xxxx"
       unipoint=$(ucpt "$char")
       utf=$(echo -n "$char" | xargs -I {} bash -c 'utfer "$@"' _ {})
    fi
