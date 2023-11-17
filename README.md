@@ -21,3 +21,4 @@ char   	| Unicode   	| UTF-8
 к     	| U+043A    	| d0 ba
 а     	| U+0430    	| d0 b0
 ```
+Note that this has largerly been made obsolete by a much faster and less clunky Rust version. See the `chptr` respository for the Rust version.
